@@ -120,3 +120,38 @@ $ perf record -F 99 -a -g -- sleep 10
 
 **Finding: It's caused by short-live process where top cannot catch, profiling with perf catched it.**
 ![alt text](image-18.png)
+
+## 🤖 Advanced Tracing
+### Strace (high performance penalty)
+```
+$ timeout 30 strace -ff -ttT -yy -s 4096 -p <PID> -o /tmp/strace.log
+```
+⚡️ Tip: Strace is heavy wieght process, it has a lot of overhead that impacts the target process. Perform alot of context switching between kernel and user-space via PTRACE_*, performs interupts syscall_enter and syscal_exit to get the arguments and returns.
+### Perf Trace
+```
+$ timeout 30 perf trace -p <PID> -T > /tmp/perf-trace.log
+```
+⚡️ Tip: perf trace doesnt provide verbosity that strace has e.g. it will display sys-call args as pointers hex it will not derefence to a real value. Uses ftrace, leverage Kernel Ring Buffer in memory to record trace events and contexts and userspace tool async consume the ring buffer. Recording happens in kernel space, no context switching.
+
+### bpftrace (low performance penalty)
+```
+$ bpftrace -e '
+tracepoint:syscalls:sys_enter_*
+{
+    printf("%-6d %-16s %s\n", pid, comm, probe);
+}
+
+$ bpftrace -e '
+tracepoint:syscalls:sys_enter_openat
+{
+    printf("PID=%d COMM=%s file=%s flags=%d\n",
+           pid,
+           comm,
+           str(args->filename),
+           args->flags);
+}
+'
+```
+📦 [BCC Tools](https://github.com/iovisor/bcc/tree/master/tools)
+📦 [kube-trace](https://github.com/iovisor/kubectl-trace)
+📦 [trace-loop](https://inspektor-gadget.io/docs/v0.54.1/gadgets/traceloop/)
