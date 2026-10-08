@@ -155,3 +155,45 @@ tracepoint:syscalls:sys_enter_openat
 📦 [BCC Tools](https://github.com/iovisor/bcc/tree/master/tools)
 📦 [kube-trace](https://github.com/iovisor/kubectl-trace)
 📦 [trace-loop](https://inspektor-gadget.io/docs/v0.54.1/gadgets/traceloop/)
+
+## 🤖 Trace BPF Loaded Programs
+```
+$ bpftool prog show
+```
+⚡️ Tip: List all loaded ebpf programs in the kernel
+```
+$ bpftool net
+```
+⚡️ Tip: Show eBPF programs attached to network hooks, Is there an eBPF program attached to the network path? - if empty means no interface-attached packet filter.
+```
+$ bpftool cgroup tree
+```
+⚡️ Tip: Show cgroup hierarchy and any cgroup-attached eBPF programs. Container/pod traffic policies, cgroup-based packet filtering. If the filtering happens via cgroup hooks instead of XDP, TC.
+```
+$ tc filter show dev <iface> ingress
+```
+⚡️ Tip: Shows traffic control filters on the interface ingress path, If an eBPF program is attached through TC ingress, use suspect packets are bieng filtered as they arrived on the interface.
+```
+$ tc filter show dev <iface> egress
+```
+⚡️ Tip: Same as above packets leaving the interface.
+```
+$ ip link show
+```
+⚡️ Tip: List interfaces and thier state.
+```
+$ bpftool prog dump xlated id <PROG_ID> linum
+```
+⚡️ Tip: Dumps the kernel-translated eBPF instructions for one program. Inspect the program what is actually doing. Packet parsing, map lookups, condition checks, drop/pass/redirect decisions.
+```
+$ bpftool prog show id <PROG_ID>
+```
+⚡️ Tip: Show detailed metadata for one specific program. program type, map IDs used attach type, name/tag
+```
+$ bpftool map show
+```
+⚡️ Tip: List all loaded eBPF maps, map id, type (hash, array, lpm_trie etc.), key/value sizes, max entries, owner program, references. show blocklist or whitelist conditions.
+```
+$ bpftool map dump id <MAP_ID>
+```
+⚡️ Tip: Dump the contents of a specific eBPF map, is the IP address / port in the map?
